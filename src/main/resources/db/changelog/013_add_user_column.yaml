@@ -1,0 +1,20 @@
+
+databaseChangeLog:
+  - changeSet:
+      id: add_user_column
+      author: sandy
+      changes:
+        - addColumn:
+            tableName: tenants
+            columns:
+              - column:
+                  name: user_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+              - addForeignKeyConstraint:
+                  baseTableName: tenants
+                  baseColumnNames: user_id
+                  constraintName: fk_tenant_user
+                  referencedTableName: users
+                  referencedColumnNames: id

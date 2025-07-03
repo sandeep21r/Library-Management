@@ -1,0 +1,41 @@
+databaseChangeLog:
+  - changeSet:
+      id: book_instance_table
+      author : sandy
+      changes:
+        - createTable:
+            tableName: book_instances
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: book_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+              - column:
+                 name: available
+                 type: BOOLEAN
+                 constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+              - addForeignKeyConstraint:
+                  baseTableName: book_instances
+                  baseColumnNames: book_id
+                  constraintName: fk_book_instance_book
+                  referencedTableName: books
+                  referencedColumnNames: id
+
+
+

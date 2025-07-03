@@ -1,0 +1,64 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-userroletenant-table
+      author: sandy
+      changes:
+        - createTable:
+            tableName: user_role_tenant
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: tenant_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: user_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: tenant_name
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: created_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+              - column:
+                  name: updated_at
+                  type: timestamp
+              - column:
+                  name: version
+                  type: BIGINT
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+
+              - addUniqueConstraint:
+                  tableName: user_role_tenant
+                  columnNames: user_id, tenant_id
+                  constraintName: uq_user_tenant
+
+              - addForeignKeyConstraint:
+                  baseTableName: user_role_tenant
+                  baseColumnNames: user_id
+                  referencedTableName: users
+                  referencedColumnNames: id
+                  constraintName: fk_user
+
+              - addForeignKeyConstraint:
+                  baseTableName: user_role_tenant
+                  baseColumnNames: tenant_id
+                  referencedTableName: tenant
+                  referencedColumnNames: id
+                  constraintName: fk_tenant

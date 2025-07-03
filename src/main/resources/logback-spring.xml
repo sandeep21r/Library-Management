@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <!-- Where the log file will be stored -->
+    <property name="LOG_FILE" value="logs/library-management.log"/>
+
+    <!-- Console appender -->
+    <appender name="Console" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss}  [%thread] %-5level %logger{36} -  %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- File appender -->
+    <appender name="FileAppender" class="ch.qos.logback.core.FileAppender">
+        <file>${LOG_FILE}</file>
+        <encoder>
+<!--            [%thread] %-5level %logger{36} - -->
+            <pattern>%d{yyyy-MM-dd HH:mm:ss}   [%thread] %-5level %logger{36} -  %msg%n</pattern>
+        </encoder>
+    </appender>
+
+<!--    &lt;!&ndash; Set log level for Spring ExceptionHandlerExceptionResolver &ndash;&gt;-->
+    <logger name="org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver" level="ERROR"/>
+
+    <!-- Root logger -->
+    <root level="INFO">
+        <appender-ref ref="Console"/>
+        <appender-ref ref="FileAppender"/>
+    </root>
+
+    <!-- Your package-specific log levels -->
+    <logger name="com.LibraryApi" level="DEBUG"/>
+</configuration>

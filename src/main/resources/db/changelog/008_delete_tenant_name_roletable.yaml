@@ -1,0 +1,9 @@
+databaseChangeLog:
+  - changeSet:
+      id: drop-column-from-table
+      author: sandy
+
+      changes:
+        - dropColumn:
+            columnName: tenant_name
+            tableName: user_role_tenant

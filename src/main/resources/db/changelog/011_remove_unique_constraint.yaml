@@ -1,0 +1,10 @@
+databaseChangeLog:
+  - changeSet:
+      id: drop-isbn-unique-constraint
+      author: sandy
+      changes:
+        - sql:
+            splitStatements: true
+            stripComments: true
+            sql: |
+              ALTER TABLE books DROP CONSTRAINT IF EXISTS uk_books_isbn;

@@ -1,0 +1,61 @@
+databaseChangeLog:
+  - changeSet:
+      id : borrow_table
+      author : sandy
+      changes:
+        - createTable:
+            tableName: borrows
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+              - column:
+                  name: tenant_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+              - column:
+                 name: book_id
+                 type: UUID
+                 constraints:
+                   nullable: false
+              - column:
+                  name: returned
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+              - addForeignKeyConstraint:
+                  baseTableName: borrow
+                  baseColumnNames: user_id
+                  constraintName: fk_borrow_user
+                  referencedTableName: users
+                  referencedColumnNames: id
+
+              - addForeignKeyConstraint:
+                  baseTableName: borrows
+                  baseColumnNames: book_id
+                  constraintName: fk_borrow_book
+                  referencedTableName: books
+                  referencedColumnNames: id
+
+              - addForeignKeyConstraint:
+                  baseTableName: borrow
+                  baseColumnNames: tenant_id
+                  constraintName: fk_borrow_tenant
+                  referencedTableName: tenant
+                  referencedColumnNames: id

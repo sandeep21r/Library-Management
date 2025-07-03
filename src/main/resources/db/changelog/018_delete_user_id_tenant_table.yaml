@@ -1,0 +1,9 @@
+databaseChangeLog:
+  - changeSet:
+      id: drop-user-id
+      author: sandy
+
+      changes:
+        - dropColumn:
+            columnName: user_id
+            tableName: tenants

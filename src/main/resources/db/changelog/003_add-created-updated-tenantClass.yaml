@@ -1,0 +1,15 @@
+databaseChangeLog:
+  - changeSet:
+      id: add-created-updated-tenantClass
+      author: sandy
+      changes:
+        - addColumn:
+            tableName: tenants
+            columns:
+              - column:
+                  name: created_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+              - column:
+                  name: updated_at
+                  type: timestamp

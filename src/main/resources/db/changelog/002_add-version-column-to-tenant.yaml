@@ -1,0 +1,14 @@
+databaseChangeLog:
+  - changeSet:
+      id: add-version-column-to-tenant
+      author: sandy
+      changes:
+        - addColumn:
+            tableName: tenants
+            columns:
+              - column:
+                  name: version
+                  type: BIGINT
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false

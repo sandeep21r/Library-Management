@@ -1,0 +1,16 @@
+databaseChangeLog:
+  - changeSet:
+      id: alter-fk-book-instance-book
+      author: sandy
+      changes:
+        - dropForeignKeyConstraint:
+            baseTableName: book_instances
+            constraintName: fk_book_instance_book
+
+        - addForeignKeyConstraint:
+            baseTableName: book_instances
+            baseColumnNames: book_id
+            referencedTableName: books
+            referencedColumnNames: id
+            constraintName: fk_book_instance_book
+            onDelete: CASCADE

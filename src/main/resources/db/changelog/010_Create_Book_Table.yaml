@@ -1,0 +1,79 @@
+databaseChangeLog:
+  - changeSet:
+      id: Book_table_create
+      author: sandy
+      changes:
+        - createTable:
+            tableName: books
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: title
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: author
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: edition
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: language
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: publisher
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: isbn
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: quantity
+                  type: INT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: deleted
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: tenant_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_time
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+              - column:
+                  name: updated_time
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+
+              - addForeignKeyConstraint:
+                  baseTableName: books
+                  baseColumnNames: tenant_id
+                  constraintName: fk_books_tenant
+                  referencedTableName: tenant
+                  referencedColumnNames: id
+
+
+

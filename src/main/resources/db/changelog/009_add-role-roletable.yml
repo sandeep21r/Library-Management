@@ -1,0 +1,15 @@
+
+databaseChangeLog:
+  - changeSet:
+      id: add-ROLE-roletable
+      author: sandy
+      changes:
+        - addColumn:
+            tableName: user_role_tenant
+            columns:
+              - column:
+                  name: role
+                  type: VARCHAR(15)
+
+                  constraints:
+                    nullable: false

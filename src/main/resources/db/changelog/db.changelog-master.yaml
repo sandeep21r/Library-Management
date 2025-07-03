@@ -1,0 +1,43 @@
+databaseChangeLog:
+  - include:
+      file: db/changelog/001_create-tenant.yaml
+  - include:
+      file: db/changelog/002_add-version-column-to-tenant.yaml
+  - include:
+      file: db/changelog/003_add-created-updated-tenantClass.yaml
+  - include:
+      file: db/changelog/004_add-location-tenantclass.yaml
+  - include:
+      file: db/changelog/005_create-user.yaml
+  - include:
+      file: db/changelog/006_add-created-updated-version-userClass.yaml
+
+  - include:
+      file: db/changelog/007_add-create-user_role_tenant.yaml
+  - include:
+      file: db/changelog/008_delete_tenant_name_roletable.yaml
+  - include:
+      file: db/changelog/009_add-role-roletable.yml
+  - include:
+      file: db/changelog/010_Create_Book_Table.yaml
+
+  - include:
+      file: db/changelog/011_remove_unique_constraint.yaml
+  - include:
+      file: db/changelog/012_borrow_table.yaml
+  - include:
+      file: db/changelog/013_add_user_column.yaml
+  - include:
+      file: db/changelog/014_add_user_in_book_table.yaml
+  - include:
+      file: db/changelog/015_Create_Book_Instance_Table.yaml
+  - include:
+      file: db/changelog/017_add_tenant_and_delete_user_role_tenant.yaml
+  - include:
+      file: db/changelog/018_delete_user_id_tenant_table.yaml
+  - include:
+      file: db/changelog/019_fk_book_instance_in_borrow_table.yaml
+  - include:
+      file: db/changelog/020_add_returned_due_date.yaml
+  - include:
+      file: db/changelog/021_on_delete_cascade_book_instance.yaml

@@ -1,0 +1,34 @@
+databaseChangeLog:
+  - changeSet:
+      id: add-foreign-keys-tenant
+      author: sandy
+      changes:
+        - addColumn:
+            tableName: users
+            columns:
+              - column:
+                  name: tenant_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+              - column:
+                  name: role
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: false
+
+        - addForeignKeyConstraint:
+            baseTableName: users
+            baseColumnNames: tenant_id
+            constraintName: fk_users_tenant_entity
+            referencedTableName: tenants
+            referencedColumnNames: id
+            onDelete: CASCADE
+
+  - changeSet:
+      id: drop-old-table
+      author: sandy
+
+      changes:
+        - dropTable:
+            tableName: user_role_tenant

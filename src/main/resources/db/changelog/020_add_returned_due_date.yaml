@@ -1,0 +1,18 @@
+databaseChangeLog:
+  - changeSet:
+      id: add-dates-to-borrow
+      author: sandy
+      changes:
+        - addColumn:
+            tableName: borrows
+            columns:
+              - column:
+                  name: due_date
+                  type: timestamp
+                  constraints:
+                    nullable: false
+              - column:
+                  name: returned_date
+                  type: timestamp
+                  constraints:
+                    nullable: true
