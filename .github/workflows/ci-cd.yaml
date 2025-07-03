@@ -54,5 +54,5 @@ jobs:
       - name: Restart app on EC2
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} \
-            sudo systemctl stop myapp || true
-            sudo systemctl start myapp
+            "sudo systemctl stop myapp || true && sudo systemctl start myapp"
+      
