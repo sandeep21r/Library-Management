@@ -273,9 +273,6 @@ public class BookService {
         }
         return new UserBookDataResponse(booksEntities.getId(),booksEntities.getTitle(),booksEntities.getAuthor(),booksEntities.getEdition(),booksEntities.getLanguage(),booksEntities.getPublisher(),booksEntities.getIsbn(),booksEntities.getQuantity());
     }
-
-
-
     public int  DecrementBookQuantity(UUID bookId){
         return bookRepository.decrementQuantityIfAvailable(bookId);
     }
