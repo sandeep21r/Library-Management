@@ -28,15 +28,10 @@ public class FetchTokenClaimService {
 
     public Map<String,String> FetchTokenClaim(){
         log.info("Fetching claim from the token");
-
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-
         String username = auth.getPrincipal().toString();
-
         Map<?, ?> details = (Map<?, ?>) auth.getDetails();
-
         String userId = details.get("user_id").toString();
-
         String tenantId = details.get("tenant_id").toString();
         String role = details.get("role").toString();
         Map<String,String> tokenClaims = new HashMap<>();

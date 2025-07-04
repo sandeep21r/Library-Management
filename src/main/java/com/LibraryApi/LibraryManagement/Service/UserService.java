@@ -4,7 +4,6 @@ package com.LibraryApi.LibraryManagement.Service;
 import com.LibraryApi.LibraryManagement.Entity.TenantEntity;
 import com.LibraryApi.LibraryManagement.Entity.UserEntity;
 import com.LibraryApi.LibraryManagement.Exception.CustomException;
-import com.LibraryApi.LibraryManagement.NotUsed.UserRoleTenantService;
 import com.LibraryApi.LibraryManagement.Repository.TenantRepository;
 import com.LibraryApi.LibraryManagement.Repository.UserRepository;
 import com.LibraryApi.LibraryManagement.Request.UserTenantRequest;
@@ -36,8 +35,6 @@ public class UserService {
     @Autowired
     private JwtUtil jwtUtil;
     @Autowired
-    private UserAndTenant_ExistsService userAndTenantExistsService;
-    @Autowired
     private FetchTokenClaimService fetchTokenClaimService;
 
     @Autowired
@@ -45,11 +42,12 @@ public class UserService {
 
     private static final Logger log = LoggerFactory.getLogger(UserService.class);
 
+    // Main Function
     public UserResponse registerUser(UserRequest userRequest){
         Map<String,String> out = fetchTokenClaimService.FetchTokenClaim();
         TenantEntity tenantEntity1= tenantService.getTenatById(UUID.fromString(out.get("tenantEntity"))).orElse(null);
         UserEntity userEntity = this.findByUsername(out.get("username"));
-        log.info("Superadmin/Admin is registering the User with username: {}",userRequest.getUsername());
+        log.info("Superadmin/Admin is registering the User with username : {} and registration code: {}",userRequest.getUsername(),userRequest.getRegistrationCode());
         this.UserExitsByUsername(userRequest.getUsername());
         TenantEntity tenantEntity = tenantRepository.findByRegistrationCode(userRequest.getRegistrationCode()).orElse(null);
         this.tenantExistsByRegistrationCode(tenantEntity,userRequest.getRegistrationCode());
@@ -62,59 +60,24 @@ public class UserService {
         log.info("User Successfully register with username: {} and registration code : {}",userRequest.getUsername(),userRequest.getRegistrationCode());
         return new UserResponse(ans.getUsername(),ans.getId(),userRequest.getRegistrationCode(),userRequest.getRole());
     }
-
-    public  void UserExitsByUsername(String username){
-        if(userRepository.existsByUsername(username)){
-            log.info("User Already Exists with username: {}",username);
-            throw new CustomException("User Already Exists", HttpStatus.CONFLICT);
-        }
-    }
-
-    public void tenantExistsByRegistrationCode(TenantEntity tenantEntity,String registrationCode){
-        if(tenantEntity  == null){
-            log.info("Tenant Not found code: {}",registrationCode);
-            throw new CustomException("Tenant Not found", HttpStatus.NOT_FOUND);
-        }
-    }
     public  String login(UserTenantRequest userTenantRequest){
         log.info("User Trying to login with username: {}",userTenantRequest.getUsername());
-
-        if(userTenantRequest.getUsername() == null || userTenantRequest.getPassword() == null || userTenantRequest.getRegistration_code() == null){
-            log.info("User provided incomplete detail");
-            throw  new CustomException("You missed the input",HttpStatus.BAD_REQUEST);
-        }
-        if(!userRepository.existsByUsernameAndTenantEntity_registrationCode(userTenantRequest.getUsername(),userTenantRequest.getRegistration_code())){
-            log.warn("User with username {} is not  registered to tenant with registration code: {}",userTenantRequest.getUsername(),userTenantRequest.getRegistration_code());
-            throw new CustomException("User with username "+userTenantRequest.getUsername()+" is not registered to tenant with registration code "+userTenantRequest.getRegistration_code(), HttpStatus.CONFLICT);
-        }
-        Map<String ,Object> out= userAndTenantExistsService.CheckUserAndTenant(userTenantRequest);
-        UserEntity userEntity = (UserEntity) out.get("user_entity");
-        TenantEntity tenantEntity = (TenantEntity) out.get("tenant_entity");
-
+        this.IsDataNotNull(userTenantRequest);
+        this.userExitForTenant(userTenantRequest);
+        UserEntity userEntity = userRepository.findByUsername(userTenantRequest.getUsername()).orElse(null);
+        TenantEntity tenantEntity = tenantRepository.findByRegistrationCode(userTenantRequest.getRegistration_code()).orElse(null);
+        this.tenantExistsByRegistrationCode(tenantEntity,userTenantRequest.getRegistration_code());
         String token = jwtUtil.generateToken(userEntity.getUsername(),userEntity.getId(),tenantEntity.getId(), userEntity.getRoll().toUpperCase());
-
         log.info("User login with username: {} with registration code {} having token {}",userTenantRequest.getUsername(),userTenantRequest.getRegistration_code(),token);
-
         return token;
     }
     public List<UserResponse> findAllUser(){
-        log.info("Fetching claim from the token");
+        this.logFetchToken();
         Map<String,String> out = fetchTokenClaimService.FetchTokenClaim();
-
         TenantEntity tenantEntity= tenantService.getTenatById(UUID.fromString(out.get("tenantEntity"))).orElse(null);
-
         UserEntity userEntity = this.findByUsername(out.get("username"));
-
-        if(userEntity == null){
-            log.error("user not exists user_id: {}",out.get("userEntity"));
-            throw new CustomException("please re login with the registered user", HttpStatus.CONFLICT);
-        }
-        if(tenantEntity == null){
-            log.error("tenant not exists tenant_id: {}",out.get("tenant_id"));
-            throw new CustomException("please re login with the tenant registration code", HttpStatus.CONFLICT);
-        }
-
-
+        this.isUserEntityNull(userEntity,UUID.fromString(out.get("userEntity")));
+        this.isTenantEntityNull(tenantEntity,UUID.fromString(out.get("tenantEntity")));
         if("SUPERADMIN".equalsIgnoreCase(userEntity.getRoll())){
             List<UserEntity> userEntityList = userRepository.findAllExceptSuperAdmin(userEntity.getId());
             System.out.println(userEntityList);
@@ -127,28 +90,13 @@ public class UserService {
                 .map(user -> new UserResponse(user.getUsername(), user.getId(),userEntity.getTenantEntity().getRegistrationCode(),userEntity.getRoll()))
                 .toList();
     }
-    public UserEntity findByUsername(String username){
-        return userRepository.findByUsername(username).orElse(null);
-    }
     public UserResponse getUser(UUID user_id){
-        log.info("Fetching claim from the token");
-
+        this.logFetchToken();
         Map<String,String> out = fetchTokenClaimService.FetchTokenClaim();
-
         TenantEntity tenantEntity= tenantService.getTenatById(UUID.fromString(out.get("tenantEntity"))).orElse(null);
-
         UserEntity userEntity = this.findByUsername(out.get("username"));
-
-        if(userEntity == null){
-            log.error("user not exists user_id: {}",out.get("userEntity"));
-            throw new CustomException("please re login with the registered user", HttpStatus.CONFLICT);
-        }
-        if(tenantEntity == null){
-            log.error("tenant not exists tenant_id: {}",out.get("tenant_id"));
-            throw new CustomException("please re login with the tenant registration code", HttpStatus.CONFLICT);
-        }
-
-
+        this.isUserEntityNull(userEntity,UUID.fromString(out.get("userEntity")));
+        this.isTenantEntityNull(tenantEntity,UUID.fromString(out.get("tenantEntity")));
         if("SUPERADMIN".equalsIgnoreCase(userEntity.getRoll())){
             UserEntity userEntity1 = userRepository.findById(user_id).orElse(null);
             if(userEntity1 == null){
@@ -167,6 +115,49 @@ public class UserService {
     }
 
 
+    //Helper
+    public void UserExitsByUsername(String username){
+        if(userRepository.existsByUsername(username)){
+            log.info("User Already Exists with username: {}",username);
+            throw new CustomException("User Already Exists", HttpStatus.CONFLICT);
+        }
+    }
+    public void IsDataNotNull(UserTenantRequest userTenantRequest){
+        if(userTenantRequest.getUsername() == null || userTenantRequest.getPassword() == null || userTenantRequest.getRegistration_code() == null){
+            log.info("User provided incomplete detail");
+            throw  new CustomException("You missed the input",HttpStatus.BAD_REQUEST);
+        }
+    }
+    public void userExitForTenant(UserTenantRequest userTenantRequest){
+        if(!userRepository.existsByUsernameAndTenantEntity_registrationCode(userTenantRequest.getUsername(),userTenantRequest.getRegistration_code())){
+            log.warn("User with username {} is not  registered to tenant with registration code: {}",userTenantRequest.getUsername(),userTenantRequest.getRegistration_code());
+            throw new CustomException("User with username "+userTenantRequest.getUsername()+" is not registered to tenant with registration code "+userTenantRequest.getRegistration_code(), HttpStatus.CONFLICT);
+        }
+    }
+    public void tenantExistsByRegistrationCode(TenantEntity tenantEntity,String registrationCode){
+        if(tenantEntity  == null){
+            log.info("Tenant Not found code: {}",registrationCode);
+            throw new CustomException("Tenant Not found", HttpStatus.NOT_FOUND);
+        }
+    }
+    public void isUserEntityNull(UserEntity userEntity,UUID userid){
+        if(userEntity == null){
+            log.error("user not exists user_id: {}",userid);
+            throw new CustomException("please re login with the registered user", HttpStatus.NOT_FOUND);
+        }
+    }
+    public void isTenantEntityNull(TenantEntity tenantEntity,UUID tenant_id){
+        if(tenantEntity == null){
+            log.error("tenant not exists tenant_id: {}",tenant_id);
+            throw new CustomException("please re login with the tenant registration code", HttpStatus.CONFLICT);
+        }
+    }
+    public void logFetchToken(){
+        log.info("Fetching claim from the token");
+    }
+    public UserEntity findByUsername(String username){
+        return userRepository.findByUsername(username).orElse(null);
+    }
 
 
 //    public List<UserTenantResponse> getUserTenant(){

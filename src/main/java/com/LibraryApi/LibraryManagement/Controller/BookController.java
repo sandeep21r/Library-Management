@@ -33,7 +33,7 @@ public class BookController {
     @Autowired
     private BorrowService borrowService;
 
-
+    // For Book
     @PostMapping("/create")
     public ResponseEntity<APIResponse<BookDataResponse>> createBook(@RequestBody BookDataRequest bookDataRequest){
         BooksEntity booksEntity  =  bookService.createBook(bookDataRequest);
@@ -83,7 +83,7 @@ public class BookController {
 
 
 
-
+    // For Borrow and Returned
     @PostMapping("{book_id}/borrow")
     public ResponseEntity<APIResponse<BorrowBookResponse>>  borrowBook(@PathVariable("book_id") UUID id){
         BorrowBookResponse success = borrowService.borrowBook(id);
@@ -101,13 +101,14 @@ public class BookController {
 
 
     }
-
     @GetMapping("/borrowBook/list")
     public ResponseEntity<APIResponse<List<BorrowBookResponse>>> BorrowBookDetail(){
         List<BorrowBookResponse> borrowBookResponseList = borrowService.detailForUser();
         APIResponse<List<BorrowBookResponse>> apiResponse = new APIResponse<>(true,"Detail Fetched",borrowBookResponseList);
         return new ResponseEntity<>(apiResponse,HttpStatus.FOUND);
     }
+
+
 
   }
 

@@ -4,7 +4,6 @@ import com.LibraryApi.LibraryManagement.Entity.TenantEntity;
 import com.LibraryApi.LibraryManagement.Entity.UserEntity;
 import com.LibraryApi.LibraryManagement.Repository.TenantRepository;
 import com.LibraryApi.LibraryManagement.Repository.UserRepository;
-import com.LibraryApi.LibraryManagement.NotUsed.UserRoleRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;

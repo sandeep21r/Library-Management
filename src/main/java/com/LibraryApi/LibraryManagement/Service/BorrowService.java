@@ -47,47 +47,25 @@ public class BorrowService {
     @Autowired
     private FetchTokenClaimService fetchTokenClaimService;
 
+
     @Transactional
     public BorrowBookResponse borrowBook(UUID id){
-        log.info("Fetching the user details from the access token");
         Map<String,String> out = fetchTokenClaimService.FetchTokenClaim();
-
         TenantEntity tenantEntity= tenantService.getTenatById(UUID.fromString(out.get("tenantEntity"))).orElse(null);
         UserEntity userEntity = userService.findByUsername(out.get("username"));
-        if(userEntity == null){
-            log.error("user not exists user_id: {}",out.get("user_id"));
-            throw new CustomException("please re login with the registered user", HttpStatus.CONFLICT);
-        }
-        if(tenantEntity == null){
-            log.error("tenant not exists tenant_id: {}",out.get("tenant_id"));
-            throw new CustomException("please re login with the tenant registration code", HttpStatus.CONFLICT);
-        }
-
+        this.isUserNull(userEntity,UUID.fromString(out.get("userEntity")));
+        this.isTenantNull(tenantEntity,UUID.fromString(out.get("tenantEntity")));
         log.info("User with the username {} is requesting book of id {} with associated tenant : {} ",userEntity.getUsername(),id,tenantEntity.getId());
         BorrowEntity borrow = borrowRepository.findByUserEntity_idAndBooksEntity_idAndReturned(userEntity.getId(),id,false);
-
-
-        if(borrow != null){
-            log.info("user already have the book");
-            throw new CustomException("User Already have the book",HttpStatus.BAD_REQUEST);
-        }
+        this.isBorrowNotNull(borrow,userEntity.getId(),id,tenantEntity.getId());
         BooksEntity booksEntity = bookRepository.findByIdForUpdate(id);
-        if(booksEntity == null){
-            log.info("No Book data exists");
-            throw new CustomException("No Book data exists", HttpStatus.NOT_FOUND);
-
-        }
+        this.isBookNull(booksEntity);
         if(booksEntity.getQuantity() <= 0){
             log.info("No Book Available");
             throw new CustomException("Book is not available please try later", HttpStatus.NOT_FOUND);
         }
-
         BookInstanceEntity bookInstanceEntity =booksEntity.getInstances().stream().filter(BookInstanceEntity::isAvailable).findFirst().orElse(null);
-        if(bookInstanceEntity == null){
-            log.info("No Book data exists");
-            throw new CustomException("No Book data exists", HttpStatus.NOT_FOUND);
-        }
-
+        this.isBookInstanceNull(bookInstanceEntity);
         bookInstanceEntity.setAvailable(false);
         bookService.DecrementBookQuantity(id);
         LocalDateTime now = LocalDateTime.now();
@@ -97,21 +75,14 @@ public class BorrowService {
         log.info("Granted Book to user");
         return borrowBookResponse;
     }
-
     public List<BorrowBookResponse> detailForUser(){
-        log.info("Fetching the user details from the access token");
+        this.fetchUserLog();
         Map<String,String> out = fetchTokenClaimService.FetchTokenClaim();
 
         TenantEntity tenantEntity= tenantService.getTenatById(UUID.fromString(out.get("tenantEntity"))).orElse(null);
         UserEntity userEntity = userService.findByUsername(out.get("username"));
-        if(userEntity == null){
-            log.error("user not exists user_id: {}",out.get("user_id"));
-            throw new CustomException("please re login with the registered user", HttpStatus.CONFLICT);
-        }
-        if(tenantEntity == null){
-            log.error("tenant not exists tenant_id: {}",out.get("tenant_id"));
-            throw new CustomException("please re login with the tenant registration code", HttpStatus.CONFLICT);
-        }
+        this.isUserNull(userEntity,UUID.fromString(out.get("userEntity")));
+        this.isTenantNull(tenantEntity,UUID.fromString(out.get("tenantEntity")));
 
 
         log.info("fetching the book borrowed by the user : {} with the tenant : {}",userEntity.getId(),tenantEntity.getId());
@@ -151,45 +122,71 @@ public class BorrowService {
                 )).toList();
 
     }
-
     @Transactional
     public Boolean returnedBook(UUID id,UUID book_instance_id){
-        log.info("fetching the borrow row");
-        log.info("Fetching the user details from the access token");
+        this.fetchUserLog();
         Map<String,String> out = fetchTokenClaimService.FetchTokenClaim();
-
         TenantEntity tenantEntity= tenantService.getTenatById(UUID.fromString(out.get("tenantEntity"))).orElse(null);
         UserEntity userEntity = userService.findByUsername(out.get("username"));
-        if(userEntity == null){
-            log.error("user not exists user_id: {}",out.get("user_id"));
-            throw new CustomException("please re login with the registered user", HttpStatus.CONFLICT);
-        }
-        if(tenantEntity == null){
-            log.error("tenant not exists tenant_id: {}",out.get("tenant_id"));
-            throw new CustomException("please re login with the tenant registration code", HttpStatus.CONFLICT);
-        }
-
+        this.isUserNull(userEntity,UUID.fromString(out.get("userEntity")));
+        this.isTenantNull(tenantEntity,UUID.fromString(out.get("tenantEntity")));
+        log.info("fetching the borrow row");
         BorrowEntity borrowEntity=borrowRepository.findByUserEntity_idAndBooksEntity_idAndReturned(userEntity.getId(),id,false);
-        if(borrowEntity == null  ){
-            log.info("user does not  have the book");
-            throw new CustomException("user does not  have the book",HttpStatus.BAD_REQUEST);
-        }
+        this.isBorrowNull(borrowEntity);
         BooksEntity booksEntity = bookRepository.findByIdForUpdate(id);
-        if(booksEntity == null){
-            log.info("No Book data exists");
-            throw new CustomException("No Book data exists", HttpStatus.NOT_FOUND);
-        }
-
+        this.isBookNull(booksEntity);
         BookInstanceEntity bookInstanceEntity =bookInstanceRepository.findById(book_instance_id).orElse(null);
-        if(bookInstanceEntity == null){
-            log.info("No Book  exists");
-            throw new CustomException("No Book  exists", HttpStatus.NOT_FOUND);
-        }
+        this.isBookInstanceNull(bookInstanceEntity);
         bookService.IncrementBookQuantity(booksEntity.getId());
         bookInstanceEntity.setAvailable(true);
         borrowEntity.setReturned(true);
         borrowEntity.setReturned_date(LocalDateTime.now());
-
         return true;
+    }
+
+
+
+    public  void fetchUserLog(){
+        log.info("Fetching the user details from the access token");
+    }
+    public void isUserNull(UserEntity userEntity,UUID user_id){
+        if(userEntity == null){
+            log.error("user not exists user_id: {}",user_id);
+            throw new CustomException("please re login with the registered user", HttpStatus.CONFLICT);
+        }
+    }
+    public void isTenantNull(TenantEntity tenantEntity,UUID tenant_id){
+        if(tenantEntity == null){
+            log.error("tenant not exists tenant_id: {}",tenant_id);
+            throw new CustomException("please re login with the tenant registration code", HttpStatus.CONFLICT);
+        }
+    }
+    public void isBorrowNotNull(BorrowEntity borrow,UUID user_id,UUID tenant_id ,UUID book_id){
+        if(borrow != null){
+            log.info("user already have the book user_id: {} and book_id: {} and tenant_id: {}",user_id,book_id,tenant_id);
+            throw new CustomException("User Already have the book",HttpStatus.BAD_REQUEST);
+        }
+    }
+    public void isBookNull(BooksEntity booksEntity){
+        if(booksEntity == null){
+            this.noBookLog();
+            throw new CustomException("No Book data exists", HttpStatus.NOT_FOUND);
+
+        }
+    }
+    public void isBookInstanceNull(BookInstanceEntity bookInstanceEntity){
+        if(bookInstanceEntity == null){
+            this.noBookLog();
+            throw new CustomException("No Book data exists", HttpStatus.NOT_FOUND);
+        }
+    }
+    public void isBorrowNull(BorrowEntity borrow){
+        if(borrow == null  ){
+            log.info("user does not have the book");
+            throw new CustomException("user does not  have the book",HttpStatus.BAD_REQUEST);
+        }
+    }
+    public void noBookLog(){
+        log.info("No Book data exists");
     }
 }

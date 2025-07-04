@@ -23,6 +23,7 @@ public class UserController {
     @Autowired
     private UserService userService;
 
+
     @PostMapping("/registerUser")
     public ResponseEntity<APIResponse<UserResponse>> registerUser(@RequestBody UserRequest userRequest){
             UserResponse userResponse = userService.registerUser(userRequest);
@@ -49,8 +50,6 @@ public class UserController {
         APIResponse<UserResponse> apiResponse=new APIResponse<>(true,"Successfully Find user",userResponse);
         return new ResponseEntity<>(apiResponse,HttpStatus.FOUND);
     }
-
-
 
 
 

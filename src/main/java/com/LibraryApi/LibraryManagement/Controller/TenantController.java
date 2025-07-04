@@ -36,7 +36,6 @@ public class TenantController {
         APIResponse<tenantResponse> schoolResponseAPIResponse = new APIResponse<>(true,"Tenant created successfully", tenantResponse);
         return new ResponseEntity<>(schoolResponseAPIResponse,HttpStatus.CREATED);
     }
-
     @GetMapping("/list")
     public  ResponseEntity<APIResponse<List<tenantResponse>>> getAllTenants(){
         List<TenantEntity> ListSchoolResponse = tenantService.getAllTenants();
@@ -45,7 +44,6 @@ public class TenantController {
         APIResponse<List<tenantResponse>> responses = new APIResponse<>(true,message, allTenantResponse);
         return new ResponseEntity<>(responses,HttpStatus.OK);
     }
-
     @GetMapping("/myTenant")
     public ResponseEntity<APIResponse<tenantResponse>> getMyTenant(){
         TenantEntity tenantEntity = tenantService.myTenant( );

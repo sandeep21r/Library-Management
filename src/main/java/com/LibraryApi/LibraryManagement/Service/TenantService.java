@@ -36,29 +36,22 @@ public class TenantService {
 
     private static final Logger log = LoggerFactory.getLogger(TenantService.class);
 
+    //Main Function
     public tenantResponse registerTenant(tenantRequest request){
-        log.info("SuperAdmin is Attempting to create Tenant with TenantName: {} and Location: {}",request.getTenantName(), request.getLocation());
+        log.info("SuperAdmin is Attempting to create Tenant with TenantName: {} and Location: {} and Username: {}",request.getTenantName(), request.getLocation(),request.getUsername());
         log.info("finding the user who will be the admin of the tenant : {}" ,request.getUsername());
-        if(userRepository.existsByUsername(request.getUsername())){
-            log.info("Please create different user it already exits");
-            throw new CustomException("User is already exists and register in any other tenant please use different username",HttpStatus.NOT_FOUND);
-        }
+        this.IsExitsByUsername(request);
         String registration_code = request.getTenantName()+"-"+request.getLocation();
-        if (tenantRepo.existsByRegistrationCode(registration_code)) {
-            log.error("Duplicate Code Found: {}", registration_code);
-            throw new CustomException("Registration code " + registration_code + " already exists", HttpStatus.CONFLICT);
-        }
+        this.IsExitsByRegistrationCode(request,registration_code);
 
         TenantEntity tenant = new TenantEntity(request.getTenantName(),request.getLocation(),registration_code);
         TenantEntity tenantEntity = tenantRepo.save(tenant);
-        log.info("Adding the user to the user  table username : {} and registration code : {}",request.getUsername(),registration_code);
+        log.info("Creating the user -> username : {} and registration code : {}",request.getUsername(),registration_code);
         UserEntity userEntity = new UserEntity(request.getUsername(), passwordEncoder.encode(request.getPassword()) ,tenantEntity,"Admin");
         userRepository.save(userEntity);
         log.info("Successfully created Tenant with id: {}", tenantEntity.getId());
         return new tenantResponse(tenantEntity.getId(),request.getTenantName(), request.getLocation(),registration_code);
     }
-
-
     public List<TenantEntity> getAllTenants() {
         log.info("Fetching All Tenants");
         List<TenantEntity> tenantEntities = tenantRepo.findAll();
@@ -67,23 +60,15 @@ public class TenantService {
         } else {
             log.info("Fetched All Tenants");
         }
-
         return tenantEntities;
     }
-
     public TenantEntity myTenant(){
         log.info("Fetching claim from the token");
-
         Map<String,String> out = fetchTokenClaimService.FetchTokenClaim();
-
         TenantEntity tenantEntity= this.getTenatById(UUID.fromString(out.get("tenantEntity"))).orElse(null);
-
         UserEntity userEntity = userRepository.findByUsername(out.get("username")).orElse(null);
 
-        if(userEntity == null){
-            log.error("user not exists user_id: {}",out.get("userEntity"));
-            throw new CustomException("please re login with the registered user", HttpStatus.CONFLICT);
-        }
+        this.IsUserEntityNull(userEntity,UUID.fromString(out.get("userEntity")));
 
         if (tenantEntity == null) {
             log.info("No Tenant Data Exits");
@@ -91,6 +76,27 @@ public class TenantService {
             log.info("Fetched Tenants Data");
         }
         return tenantEntity;
+    }
+
+
+    //Helper
+    public void IsExitsByUsername(tenantRequest request){
+        if(userRepository.existsByUsername(request.getUsername())){
+            log.info("User already exists username : {}",request.getUsername());
+            throw new CustomException("User is already exists please use different username",HttpStatus.NOT_FOUND);
+        }
+    }
+    public void IsExitsByRegistrationCode(tenantRequest request,String registration_code){
+        if (tenantRepo.existsByRegistrationCode(registration_code)) {
+            log.error("Duplicate Code Found: {}", registration_code);
+            throw new CustomException("Registration code " + registration_code + " already exists", HttpStatus.CONFLICT);
+        }
+    }
+    public void IsUserEntityNull(UserEntity userEntity,UUID user_id){
+        if(userEntity == null){
+            log.error("user not exists user_id: {}",user_id);
+            throw new CustomException("please re login with the registered user", HttpStatus.CONFLICT);
+        }
     }
     public Optional<TenantEntity> getTenatById(UUID tenant_id){
         return tenantRepo.findById(tenant_id);
